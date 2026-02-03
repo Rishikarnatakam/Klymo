@@ -51,12 +51,24 @@ def load_demo_images(location: str = "delhi") -> dict:
 
 def generate_demo_images(location: str = "delhi") -> dict:
     """Generate demo images on-the-fly."""
-    from src.data.gee_fetcher import GEEFetcher
     from src.inference.pipeline import SuperResolutionPipeline
+    import numpy as np
     
     with st.spinner(f"Fetching Sentinel-2 tile for {location}..."):
-        fetcher = GEEFetcher(authenticate=False)  # Use synthetic fallback
-        tile = fetcher.fetch_tile(location)
+        # Try GEE first, fall back to synthetic
+        try:
+            import ee
+            ee.Initialize(project='klymo-486313')
+            from src.data.gee_fetcher import GEEFetcher
+            fetcher = GEEFetcher(authenticate=False)
+            fetcher.authenticated = True
+            fetcher.ee = ee
+            tile = fetcher.fetch_tile(location if location in ["delhi", "kanpur"] else "delhi")
+        except Exception as e:
+            st.warning(f"GEE unavailable ({e}), using synthetic demo tile")
+            # Create synthetic urban-like tile
+            np.random.seed(42)
+            tile = np.random.rand(256, 256, 3).astype(np.float32) * 0.3 + 0.2
     
     with st.spinner("Running super-resolution..."):
         pipeline = SuperResolutionPipeline(run_checks=False)
