@@ -22,9 +22,22 @@ for dir_path in [OUTPUTS_DIR, MODEL_DIR, DATASETS_DIR]:
 # Output subdirectories
 METRICS_DIR = OUTPUTS_DIR / "metrics"
 VISUALIZATIONS_DIR = OUTPUTS_DIR / "visualizations"
+DEMO_DIR = OUTPUTS_DIR / "demo"
 
-for dir_path in [METRICS_DIR, VISUALIZATIONS_DIR]:
+for dir_path in [METRICS_DIR, VISUALIZATIONS_DIR, DEMO_DIR]:
     dir_path.mkdir(parents=True, exist_ok=True)
+
+# Demo locations for Streamlit app
+DEMO_LOCATIONS = {
+    "delhi": {
+        "name": "Delhi, India",
+        "description": "Dense urban area with government buildings and parks",
+    },
+    "kanpur": {
+        "name": "Kanpur, India", 
+        "description": "Industrial city along Ganges River",
+    },
+}
 
 # ============================================================================
 # Sentinel-2 Configuration
