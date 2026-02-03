@@ -1,12 +1,17 @@
-# Byte-compiled / optimized / DLL files
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.*.local
+
+# Kaggle credentials
+kaggle.json
+.kaggle/
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -24,45 +29,11 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# Environments
-.env
-.venv
-env/
+# Virtual environments
 venv/
-/venv/
 ENV/
-env.bak/
-venv.bak/
+env/
+.venv/
 
 # IDE
 .idea/
@@ -71,19 +42,35 @@ venv.bak/
 *.swo
 *~
 
-# Project specific
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Model weights (download at runtime)
+model_zoo/*.pth
+model_zoo/checkpoints/
+
+# Datasets (download at runtime)
+datasets/
+data/worldstrat/
+
+# Outputs (generated)
 outputs/
+*.png
+*.jpg
+*.jpeg
 *.tif
 *.tiff
-*.pth
-model_zoo/
-datasets/
-*.zip
-*.tar.gz
 
-# Google Earth Engine credentials
-.config/earthengine/
+# Logs
+*.log
+logs/
 
-# Large files
-*.npy
-*.npz
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
