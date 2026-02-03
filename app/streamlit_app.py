@@ -108,13 +108,27 @@ def main():
         st.header("⚙️ Settings")
         
         # Location selection
-        location = st.selectbox(
+        location_options = list(DEMO_LOCATIONS.keys()) + ["custom"]
+        
+        location_key = st.selectbox(
             "Demo Location",
-            options=list(DEMO_LOCATIONS.keys()),
-            format_func=lambda x: DEMO_LOCATIONS[x]["name"],
+            options=location_options,
+            format_func=lambda x: "📍 Custom Coordinates" if x == "custom" else DEMO_LOCATIONS[x]["name"],
         )
         
-        st.info(f"📍 {DEMO_LOCATIONS[location]['description']}")
+        if location_key == "custom":
+            st.info("Enter coordinates to fetch a live Sentinel-2 tile.")
+            col_lat, col_lon = st.columns(2)
+            with col_lat:
+                custom_lat = st.number_input("Latitude", value=28.6139, format="%.4f")
+            with col_lon:
+                custom_lon = st.number_input("Longitude", value=77.2090, format="%.4f")
+            
+            # Use coordinate string as internal location key
+            location = f"{custom_lat},{custom_lon}"
+        else:
+            st.info(f"📍 {DEMO_LOCATIONS[location_key]['description']}")
+            location = location_key
         
         st.divider()
         

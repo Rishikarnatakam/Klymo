@@ -113,8 +113,16 @@ class GEEFetcher:
         if location in LOCATIONS:
             lat = LOCATIONS[location]["lat"]
             lon = LOCATIONS[location]["lon"]
+        elif "," in location:
+            try:
+                # Try parsing "lat,lon" string
+                parts = location.split(",")
+                lat = float(parts[0].strip())
+                lon = float(parts[1].strip())
+            except ValueError:
+                 raise ValueError(f"Invalid coordinate format: {location}. Expected 'lat,lon'")
         else:
-            raise ValueError(f"Unknown location: {location}. Use one of {list(LOCATIONS.keys())}")
+            raise ValueError(f"Unknown location: {location}. Use one of {list(LOCATIONS.keys())} or 'lat,lon'")
         
         # Set date range
         if date_range is None:
