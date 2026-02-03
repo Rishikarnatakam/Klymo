@@ -6,15 +6,52 @@ A geospatially faithful 4× super-resolution pipeline for Sentinel-2 satellite i
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+---
+
+## 🚀 Quick Start (For Judges)
+
+### Option 1: One-Click Colab (Recommended)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rishikarnatakam/Klymo/blob/main/notebooks/colab_inference.ipynb)
+
+1. Click the badge above
+2. Go to `Runtime → Change runtime type → GPU`
+3. Run all cells in order
+
+The notebook will:
+- Clone this repo
+- Install dependencies
+- Authenticate with GEE + Kaggle
+- Download WorldStrat dataset
+- Train SwinIR (3 epochs, ~15 min)
+- Run inference on Delhi satellite tile
+- Display comparison + metrics
+
+### Option 2: Local Setup
+
+```bash
+git clone https://github.com/Rishikarnatakam/Klymo.git
+cd Klymo
+pip install -r requirements.txt
+python demo.py  # Quick test (works on CPU)
+streamlit run app/streamlit_app.py  # Interactive UI
+```
+
+---
+
 ## 🎯 Overview
 
-This project enhances Sentinel-2 imagery from 10m/pixel to 2.5m/pixel resolution using a pretrained SwinIR transformer model. **We prioritize geospatial correctness over visual sharpness** — a believable image beats an impressive fake.
+This project enhances Sentinel-2 imagery from **10m/pixel to 2.5m/pixel** resolution using a pretrained SwinIR transformer model. 
+
+**We prioritize geospatial correctness over visual sharpness** — a believable image beats an impressive fake.
 
 ### Sample Results
 
 | Low Resolution (10m) | Bicubic 4× | SwinIR 4× (2.5m) |
 |---------------------|------------|------------------|
 | ![LR](outputs/demo/lr_sample.png) | ![Bicubic](outputs/demo/bicubic_sample.png) | ![SR](outputs/demo/sr_sample.png) |
+
+---
 
 ## 🔬 Technical Decisions
 
@@ -49,44 +86,7 @@ Satellite imagery is used for:
 - Edge consistency validation
 - NDVI stability checks
 
-### Limitations
-
-- **Not for feature detection**: Don't use SR output for counting buildings or detecting new roads
-- **Texture synthesis**: Complex textures (dense urban, forest canopy) may show repetitive patterns
-- **Cloud/shadow handling**: Works best on clear imagery; artifacts possible near cloud edges
-- **Spectral fidelity**: Optimized for RGB; other bands may need separate treatment
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-git clone https://github.com/yourusername/sentinel2-sr.git
-cd sentinel2-sr
-pip install -r requirements.txt
-```
-
-### One-Click Colab
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](notebooks/sentinel2_sr_colab.ipynb)
-
-### Run Inference
-
-```python
-from src.inference.pipeline import SuperResolutionPipeline
-
-# Initialize pipeline
-pipeline = SuperResolutionPipeline(scale=4, device='cuda')
-
-# Run on Sentinel-2 image
-sr_image = pipeline.run("path/to/sentinel2_tile.tif")
-```
-
-### Interactive Demo
-
-```bash
-streamlit run app/streamlit_app.py
-```
+---
 
 ## 📊 Metrics
 
@@ -96,6 +96,8 @@ Evaluated on WorldStrat validation set:
 |--------|-------------|--------|
 | Bicubic 4× | 24.32 | 0.6821 |
 | **SwinIR 4×** | **28.47** | **0.8156** |
+
+---
 
 ## 🏗️ Pipeline Architecture
 
@@ -131,12 +133,15 @@ Sentinel-2 LR (10m/pixel)
     Output (2.5m/pixel)
 ```
 
+---
+
 ## 📁 Project Structure
 
 ```
-sentinel2-sr/
+Klymo/
 ├── README.md
 ├── requirements.txt
+├── demo.py                    # Quick test script
 ├── src/
 │   ├── config.py              # Configuration constants
 │   ├── data/
@@ -147,56 +152,62 @@ sentinel2-sr/
 │   ├── models/
 │   │   ├── swinir.py
 │   │   └── bicubic.py
+│   ├── training/
+│   │   └── finetune.py        # Fine-tuning with L1 loss
 │   ├── inference/
 │   │   ├── pipeline.py
 │   │   └── postprocess.py
 │   └── metrics/
 │       ├── psnr.py
 │       ├── ssim.py
-│       └── hallucination.py
+│       └── evaluate.py
 ├── app/
-│   └── streamlit_app.py
+│   └── streamlit_app.py       # Interactive comparison UI
 ├── notebooks/
-│   └── sentinel2_sr_colab.ipynb
+│   └── colab_inference.ipynb  # ← Run this on Colab
 └── outputs/
-    ├── metrics/
-    ├── visualizations/
-    └── demo/
+    ├── demo/
+    └── metrics/
 ```
+
+---
 
 ## 🛰️ Data Sources
 
-### WorldStrat (Validation)
+### WorldStrat (Training/Validation)
 - **Source**: [Kaggle WorldStrat Dataset](https://www.kaggle.com/datasets/julienco/worldstrat)
-- **Purpose**: PSNR/SSIM computation
-- **Usage**: Small paired LR/HR patches only
+- **Purpose**: PSNR/SSIM computation + fine-tuning
+- **Usage**: Paired LR/HR satellite patches
 
 ### Google Earth Engine (Inference)
 - **Source**: Sentinel-2 L2A
 - **Bands**: B4 (Red), B3 (Green), B2 (Blue)
 - **Resolution**: 10m native → 2.5m super-resolved
 
+---
+
 ## ⚠️ Hallucination Guardrails
 
 The system implements multiple checks:
 
 1. **No Diffusion Models**: Eliminates stochastic hallucinations
-2. **Edge Consistency**: SR edges must align with original LR edges
-3. **NDVI Stability**: Vegetation indices preserved within tolerance
-4. **Color Distribution**: Histogram matching prevents color drift
+2. **L1 Loss Only**: No adversarial/perceptual loss during fine-tuning
+3. **Edge Consistency**: SR edges must align with original LR edges
+4. **NDVI Stability**: Vegetation indices preserved within tolerance
+5. **Color Distribution**: Histogram matching prevents color drift
 
 **Failure Conditions** (treated as errors):
 - Buildings appearing in forested areas
 - Roads appearing in water bodies
 - New structures not present in original
 
-## 🤝 Contributing
-
-Contributions welcome! Please read our contributing guidelines.
+---
 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+---
 
 ## 📚 References
 
