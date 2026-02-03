@@ -2,7 +2,7 @@
 Google Earth Engine fetcher for Sentinel-2 imagery.
 
 Provides utilities to fetch Sentinel-2 L2A tiles from GEE
-for real-world inference demonstrations.
+for real-world inference.
 """
 
 import os
@@ -18,14 +18,14 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.config import (
-    DEMO_LOCATIONS,
-    DEFAULT_DEMO_LOCATION,
+    LOCATIONS,
+    DEFAULT_LOCATION,
     GEE_CONFIG,
     SENTINEL2_BANDS,
     RGB_BANDS,
     TILE_SIZE,
     REFLECTANCE_MAX,
-    DEMO_DIR,
+    VISUALIZATIONS_DIR,
 )
 
 
@@ -33,7 +33,7 @@ class GEEFetcher:
     """
     Fetch Sentinel-2 imagery from Google Earth Engine.
     
-    Requires authentication - no synthetic fallbacks.
+    Requires GEE authentication - no fallbacks.
     """
     
     def __init__(
@@ -83,7 +83,7 @@ class GEEFetcher:
     
     def fetch_tile(
         self,
-        location: str = DEFAULT_DEMO_LOCATION,
+        location: str = DEFAULT_LOCATION,
         tile_size: int = TILE_SIZE,
         date_range: Optional[Tuple[str, str]] = None,
         cloud_threshold: int = GEE_CONFIG["cloud_threshold"],
@@ -92,7 +92,7 @@ class GEEFetcher:
         Fetch a Sentinel-2 tile for the specified location.
         
         Args:
-            location: Location key from DEMO_LOCATIONS
+            location: Location key from LOCATIONS config
             tile_size: Size of tile to fetch (in pixels)
             date_range: Optional (start_date, end_date) tuple, format YYYY-MM-DD
             cloud_threshold: Maximum cloud coverage percentage
@@ -110,11 +110,11 @@ class GEEFetcher:
             )
         
         # Get location coordinates
-        if location in DEMO_LOCATIONS:
-            lat = DEMO_LOCATIONS[location]["lat"]
-            lon = DEMO_LOCATIONS[location]["lon"]
+        if location in LOCATIONS:
+            lat = LOCATIONS[location]["lat"]
+            lon = LOCATIONS[location]["lon"]
         else:
-            raise ValueError(f"Unknown location: {location}. Use one of {list(DEMO_LOCATIONS.keys())}")
+            raise ValueError(f"Unknown location: {location}. Use one of {list(LOCATIONS.keys())}")
         
         # Set date range
         if date_range is None:
@@ -189,12 +189,12 @@ class GEEFetcher:
         Args:
             tile: Image array (H, W, 3) in [0, 1] range
             name: Output filename (without extension)
-            output_dir: Output directory (default: DEMO_DIR)
+            output_dir: Output directory (default: VISUALIZATIONS_DIR)
         
         Returns:
             Path to saved file
         """
-        output_dir = output_dir or DEMO_DIR
+        output_dir = output_dir or VISUALIZATIONS_DIR
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Convert to 8-bit

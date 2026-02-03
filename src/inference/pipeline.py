@@ -19,7 +19,6 @@ from src.config import (
     SR_SCALE,
     TILE_SIZE,
     TILE_OVERLAP,
-    DEMO_DIR,
     VISUALIZATIONS_DIR,
 )
 from src.data.preprocessing import (
@@ -326,59 +325,3 @@ class SuperResolutionPipeline:
                 saved_paths[key] = path
         
         return saved_paths
-
-
-def run_demo(
-    location: str = "delhi",
-    save_outputs: bool = True,
-) -> Dict[str, Any]:
-    """
-    Run a complete demo using GEE tiles.
-    
-    Args:
-        location: Demo location name
-        save_outputs: Whether to save output images
-    
-    Returns:
-        Pipeline results
-    """
-    from src.data.gee_fetcher import GEEFetcher
-    
-    print(f"\n{'='*60}")
-    print(f"Running SR demo for {location}")
-    print(f"{'='*60}\n")
-    
-    # Fetch tile
-    fetcher = GEEFetcher(authenticate=True)
-    tile = fetcher.fetch_tile(location)
-    
-    if tile is None:
-        raise RuntimeError(f"Failed to fetch tile for {location}")
-    
-    # Save LR tile
-    fetcher.save_tile(tile, f"lr_{location}")
-    
-    # Run pipeline
-    pipeline = SuperResolutionPipeline()
-    results = pipeline.run(tile)
-    
-    if save_outputs:
-        # Save outputs
-        pipeline.save_results(results, location, DEMO_DIR)
-        
-        # Save SR tile
-        sr_8bit = to_8bit_visualization(results['sr'])
-        Image.fromarray(sr_8bit).save(DEMO_DIR / f"sr_{location}.png")
-        
-        # Save bicubic
-        bicubic_8bit = to_8bit_visualization(results['bicubic'])
-        Image.fromarray(bicubic_8bit).save(DEMO_DIR / f"bicubic_{location}.png")
-        
-        print(f"\nOutputs saved to {DEMO_DIR}")
-    
-    return results
-
-
-if __name__ == "__main__":
-    # Run demo
-    run_demo("delhi")

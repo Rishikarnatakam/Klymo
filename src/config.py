@@ -22,9 +22,8 @@ for dir_path in [OUTPUTS_DIR, MODEL_DIR, DATASETS_DIR]:
 # Output subdirectories
 METRICS_DIR = OUTPUTS_DIR / "metrics"
 VISUALIZATIONS_DIR = OUTPUTS_DIR / "visualizations"
-DEMO_DIR = OUTPUTS_DIR / "demo"
 
-for dir_path in [METRICS_DIR, VISUALIZATIONS_DIR, DEMO_DIR]:
+for dir_path in [METRICS_DIR, VISUALIZATIONS_DIR]:
     dir_path.mkdir(parents=True, exist_ok=True)
 
 # ============================================================================
@@ -88,10 +87,11 @@ SWINIR_MODEL_URL = "https://github.com/JingyunLiang/SwinIR/releases/download/v0.
 SWINIR_MODEL_NAME = "swinir_classical_x4.pth"
 
 # ============================================================================
-# Demo Locations (GEE)
+# Predefined Locations for GEE Fetching
 # ============================================================================
 
-DEMO_LOCATIONS = {
+# Real geographic coordinates for inference testing
+LOCATIONS = {
     "delhi": {
         "name": "Delhi, India",
         "lat": 28.6139,
@@ -106,8 +106,7 @@ DEMO_LOCATIONS = {
     },
 }
 
-# Default demo location
-DEFAULT_DEMO_LOCATION = "delhi"
+DEFAULT_LOCATION = "delhi"
 
 # ============================================================================
 # Google Earth Engine Configuration

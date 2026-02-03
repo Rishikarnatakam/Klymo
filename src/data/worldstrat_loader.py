@@ -13,7 +13,6 @@ from typing import Optional, Tuple, List, Dict, Any
 import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-from tqdm import tqdm
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -32,6 +31,8 @@ class WorldStratDataset(Dataset):
     
     The dataset contains paired Sentinel-2 (LR) and SPOT/Pleiades (HR) 
     satellite imagery patches.
+    
+    Requires downloading the real dataset from Kaggle - no synthetic fallbacks.
     """
     
     def __init__(
@@ -119,82 +120,6 @@ class WorldStratDataset(Dataset):
         
         return samples
     
-    def _create_synthetic_samples(self) -> List[Dict[str, Any]]:
-        """
-        Create synthetic samples when dataset is not available.
-        
-        Returns:
-            List of synthetic sample dictionaries
-        """
-        samples = []
-        
-        # Create directory for synthetic samples
-        synthetic_dir = self.root_dir / "synthetic"
-        synthetic_dir.mkdir(parents=True, exist_ok=True)
-        
-        np.random.seed(42)  # For reproducibility
-        
-        for i in range(min(10, self.max_samples)):
-            # Create synthetic "satellite" imagery with patterns
-            hr = self._generate_synthetic_scene(self.hr_size)
-            
-            # Create LR by downsampling HR
-            lr = self._downsample(hr, SR_SCALE)
-            
-            samples.append({
-                "lr_data": lr,
-                "hr_data": hr,
-                "name": f"synthetic_{i:03d}",
-            })
-        
-        return samples
-    
-    def _generate_synthetic_scene(self, size: int) -> np.ndarray:
-        """
-        Generate a synthetic satellite-like scene.
-        
-        Creates patterns resembling roads, buildings, vegetation.
-        """
-        scene = np.zeros((size, size, 3), dtype=np.float32)
-        
-        # Base vegetation (green-ish)
-        scene[:, :, 0] = 0.2 + np.random.random((size, size)) * 0.1
-        scene[:, :, 1] = 0.3 + np.random.random((size, size)) * 0.15
-        scene[:, :, 2] = 0.15 + np.random.random((size, size)) * 0.08
-        
-        # Add some "roads" (gray lines)
-        for _ in range(np.random.randint(2, 5)):
-            if np.random.random() > 0.5:
-                # Horizontal road
-                y = np.random.randint(size // 4, 3 * size // 4)
-                width = np.random.randint(2, 6)
-                scene[y:y+width, :, :] = 0.4 + np.random.random() * 0.1
-            else:
-                # Vertical road
-                x = np.random.randint(size // 4, 3 * size // 4)
-                width = np.random.randint(2, 6)
-                scene[:, x:x+width, :] = 0.4 + np.random.random() * 0.1
-        
-        # Add some "buildings" (bright rectangles)
-        for _ in range(np.random.randint(3, 8)):
-            x = np.random.randint(0, size - 20)
-            y = np.random.randint(0, size - 20)
-            w = np.random.randint(5, 20)
-            h = np.random.randint(5, 20)
-            brightness = 0.5 + np.random.random() * 0.3
-            scene[y:y+h, x:x+w, :] = brightness
-        
-        return np.clip(scene, 0, 1)
-    
-    def _downsample(self, image: np.ndarray, scale: int) -> np.ndarray:
-        """Downsample image by given scale factor."""
-        from skimage.transform import resize
-        
-        h, w = image.shape[:2]
-        new_h, new_w = h // scale, w // scale
-        
-        return resize(image, (new_h, new_w), anti_aliasing=True).astype(np.float32)
-    
     def __len__(self) -> int:
         return len(self.samples)
     
@@ -207,16 +132,10 @@ class WorldStratDataset(Dataset):
         """
         sample = self.samples[idx]
         
-        # Check if synthetic or file-based
-        if "lr_data" in sample:
-            lr = sample["lr_data"]
-            hr = sample["hr_data"]
-            name = sample["name"]
-        else:
-            # Load from files
-            lr = self._load_image(sample["lr"])
-            hr = self._load_image(sample["hr"])
-            name = sample["lr"].stem
+        # Load from files
+        lr = self._load_image(sample["lr"])
+        hr = self._load_image(sample["hr"])
+        name = sample["lr"].stem
         
         # Ensure correct sizes
         lr = self._crop_or_pad(lr, self.lr_size)
