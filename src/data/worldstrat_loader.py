@@ -81,9 +81,11 @@ class WorldStratDataset(Dataset):
         if not self.root_dir.exists():
             raise FileNotFoundError(
                 f"WorldStrat dataset not found at {self.root_dir}\n"
-                f"Please download from Kaggle:\n"
-                f"  kaggle datasets download -d julienco/worldstrat -p {self.root_dir} --unzip\n"
-                f"Or from: https://www.kaggle.com/datasets/julienco/worldstrat"
+                f"Likely cause: Kaggle download failed or wasn't run.\n"
+                f"FIX:\n"
+                f"1. Go to: https://www.kaggle.com/datasets/jucor1/worldstrat\n"
+                f"2. Click 'Download' (or 'Agree') to accept the rules.\n"
+                f"3. Re-run the download cell in the notebook."
             )
         
         # Look for LR/HR pairs in standard WorldStrat structure
